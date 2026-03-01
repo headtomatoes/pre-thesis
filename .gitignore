@@ -1,0 +1,47 @@
+# Binaries
+bin/
+*.o
+*.elf
+
+# Go
+vendor/
+
+# Python
+ml/.venv/
+ml/venv/
+__pycache__/
+*.pyc
+*.pyo
+.ipynb_checkpoints/
+
+# ML artifacts (large files)
+ml/data/*.csv
+ml/data/*.pcap
+ml/data/*.zip
+ml/models/*.onnx
+ml/models/*.pkl
+ml/models/*.joblib
+!ml/data/.gitkeep
+!ml/models/.gitkeep
+
+# BPF generated
+bpf/vmlinux.h
+bpf/*.o
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker volumes
+deployments/influxdb-data/
+deployments/grafana-data/
+
+# Env
+.env
+*.env.local

@@ -1,0 +1,37 @@
+# Controller runtime configuration
+# ───────────────────────────────────────────────
+
+# Network interface to attach XDP program
+interface: "eth0"
+
+# Path to compiled BPF object file
+bpf_object: "bpf/xdp_prog.o"
+
+# How often the controller polls eBPF maps for feature extraction
+poll_interval: "500ms"
+
+# ── ML Model ─────────────────────────────────
+model:
+  path: "ml/models/model.onnx"
+  # Probability threshold above which a source IP is classified as malicious
+  threshold: 0.85
+
+# ── Alerting ─────────────────────────────────
+alerting:
+  log_file: "alerts.log"
+  # Optional: send alerts to a webhook (Slack, Discord, etc.)
+  # webhook_url: "https://hooks.slack.com/services/..."
+
+# ── InfluxDB Telemetry ───────────────────────
+influxdb:
+  enabled: false
+  url: "http://localhost:8086"
+  token: "my-influx-token"
+  org: "ddos-research"
+  bucket: "ddos_metrics"
+
+# ── Blacklist / Mitigation ───────────────────
+blacklist:
+  enabled: true
+  # How long a blocked IP stays in the XDP blacklist (0 = permanent)
+  ttl: "60s"

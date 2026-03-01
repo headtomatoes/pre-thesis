@@ -1,0 +1,15 @@
+# Auto-provision InfluxDB as a Grafana datasource
+apiVersion: 1
+
+datasources:
+  - name: InfluxDB
+    type: influxdb
+    access: proxy
+    url: http://influxdb:8086
+    jsonData:
+      version: Flux
+      organization: ddos-research
+      defaultBucket: ddos_metrics
+    secureJsonData:
+      token: my-influx-token
+    isDefault: true

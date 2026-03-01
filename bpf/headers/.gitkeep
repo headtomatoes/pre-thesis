@@ -1,0 +1,5 @@
+/* Placeholder — headers/vmlinux.h is auto-generated via:
+ *   bpftool btf dump file /sys/kernel/btf/vmlinux format c > headers/vmlinux.h
+ *
+ * This directory also holds any additional BPF helper headers.
+ */

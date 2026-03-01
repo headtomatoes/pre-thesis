@@ -1,0 +1,51 @@
+version: "3.8"
+
+# ────────────────────────────────────────────
+# Monitoring Stack for DDoS Early Warning System
+# Components: InfluxDB (TSDB) + Grafana (Dashboard)
+#
+# Usage:
+#   cd deployments && docker-compose up -d
+# ────────────────────────────────────────────
+
+services:
+  # ── InfluxDB 2.x — Time-Series Database ──
+  influxdb:
+    image: influxdb:2.7
+    container_name: ddos-influxdb
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+      - influxdb-config:/etc/influxdb2
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: ddos-research-2025
+      DOCKER_INFLUXDB_INIT_ORG: ddos-research
+      DOCKER_INFLUXDB_INIT_BUCKET: ddos_metrics
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: my-influx-token
+    restart: unless-stopped
+
+  # ── Grafana — Dashboard & Alerting ──
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: ddos-grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ddos-dashboard
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/ddos-overview.json
+    depends_on:
+      - influxdb
+    restart: unless-stopped
+
+volumes:
+  influxdb-data:
+  influxdb-config:
+  grafana-data:
