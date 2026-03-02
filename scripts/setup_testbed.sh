@@ -30,28 +30,68 @@ if [ "$KVER" -lt 5 ]; then
     echo "Consider upgrading: sudo apt install linux-image-generic-hwe-22.04"
 fi
 
+# ── Detect WSL2 ──
+IS_WSL=false
+if grep -qi microsoft /proc/version 2>/dev/null; then
+    IS_WSL=true
+    echo "WSL2 detected — using WSL2-compatible package list."
+fi
+
 echo ""
 echo "── Installing system packages ──"
 apt-get update
-apt-get install -y \
-    build-essential \
-    clang-15 \
-    llvm-15 \
-    libbpf-dev \
-    linux-tools-$(uname -r) \
-    linux-headers-$(uname -r) \
-    bpftool \
-    tcpreplay \
-    tcpdump \
-    tshark \
-    iproute2 \
-    net-tools \
-    python3 \
-    python3-pip \
-    python3-venv \
-    git \
-    curl \
+
+# Base packages (always installed)
+BASE_PKGS=(
+    build-essential
+    clang-15
+    llvm-15
+    libbpf-dev
+    tcpreplay
+    tcpdump
+    tshark
+    iproute2
+    net-tools
+    python3
+    python3-pip
+    python3-venv
+    git
+    curl
     wget
+)
+
+if [ "$IS_WSL" = true ]; then
+    # WSL2 uses a Microsoft-built kernel — matching linux-tools / linux-headers
+    # packages do NOT exist in Ubuntu repos.  Install linux-tools-common to get
+    # bpftool, and skip kernel headers (not needed for BPF compilation on WSL2
+    # because we generate vmlinux.h from BTF at /sys/kernel/btf/vmlinux).
+    BASE_PKGS+=( linux-tools-common )
+else
+    # Native Ubuntu — install kernel-specific tools & headers
+    BASE_PKGS+=(
+        "linux-tools-$(uname -r)"
+        "linux-headers-$(uname -r)"
+        bpftool
+    )
+fi
+
+apt-get install -y "${BASE_PKGS[@]}"
+
+# ── WSL2: ensure bpftool is available ──
+if [ "$IS_WSL" = true ]; then
+    # linux-tools-common provides /usr/lib/linux-tools/<version>/bpftool
+    # but sometimes not a direct /usr/sbin/bpftool symlink.  Fix that.
+    if ! command -v bpftool &>/dev/null; then
+        BPFTOOL_BIN=$(find /usr/lib/linux-tools -name bpftool -type f 2>/dev/null | sort -V | tail -1)
+        if [ -n "$BPFTOOL_BIN" ]; then
+            ln -sf "$BPFTOOL_BIN" /usr/sbin/bpftool
+            echo "Symlinked $BPFTOOL_BIN → /usr/sbin/bpftool"
+        else
+            echo "WARNING: bpftool not found after installing linux-tools-common."
+            echo "         You can install it manually from kernel source or via 'apt install linux-tools-generic'."
+        fi
+    fi
+fi
 
 # ── Symlink clang/llvm if installed as clang-15 ──
 if command -v clang-15 &>/dev/null && ! command -v clang &>/dev/null; then
