@@ -25,17 +25,17 @@ run: build-go
 
 # ── Python ML Pipeline ──────────────────────
 ml-setup:
-	cd $(ML_DIR) && python -m venv .venv && \
+	cd $(ML_DIR) && python3 -m venv .venv && \
 		. .venv/bin/activate && pip install -r requirements.txt
 
 ml-train:
 	cd $(ML_DIR) && . .venv/bin/activate && \
-		python scripts/preprocess.py && \
-		python scripts/train.py
+		python3 scripts/preprocess.py && \
+		python3 scripts/train.py
 
 ml-export:
 	cd $(ML_DIR) && . .venv/bin/activate && \
-		python scripts/export_onnx.py
+		python3 scripts/export_onnx.py
 
 # ── Testing ──────────────────────────────────
 test:
@@ -43,7 +43,7 @@ test:
 
 test-ml:
 	cd $(ML_DIR) && . .venv/bin/activate && \
-		python -m pytest scripts/ -v
+		python3 -m pytest scripts/ -v
 
 # ── Deployment ───────────────────────────────
 deploy-up:
